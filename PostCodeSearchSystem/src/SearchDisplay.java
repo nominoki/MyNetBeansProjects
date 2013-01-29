@@ -1,6 +1,8 @@
+
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -12,11 +14,13 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author square-free
  */
-public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
-    
-    private final static String POST_CODE_FILE = "/Users/square-free/NetBeansProjects/PostCodeSearchSystem//build/classes/PostCode.csv";
+public class SearchDisplay extends javax.swing.JFrame implements ActionListener {
+
+    private final static String POST_CODE_FILE = "/Users/square-free/NetBeansProjects/PostCodeSearchSystem/build/classes/PostCode.csv";
     private int countRow;
     private int countColumn;
+    private final static int NUM_OF_ELEMENT = 2;
+
     /**
      * Creates new form SearchDisplay
      */
@@ -26,7 +30,7 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
         addMode.addActionListener(this);
         deleteMode.addActionListener(this);
         
-        
+
     }
 
     /**
@@ -46,6 +50,8 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
         searchMode = new javax.swing.JRadioButton();
         addMode = new javax.swing.JRadioButton();
         deleteMode = new javax.swing.JRadioButton();
+        updateBtn = new javax.swing.JButton();
+        addRowBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -60,29 +66,51 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
 
             },
             new String [] {
-                "郵便番号", "住所", "市外局番"
+                "郵便番号", "住所"
             }
-        ));
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
         scrollPane.setViewportView(searchResult);
 
         modeBtnGrp.add(searchMode);
         searchMode.setSelected(true);
-        searchMode.setText("Search");
+        searchMode.setText("照会");
         searchMode.setName("Search"); // NOI18N
 
         modeBtnGrp.add(addMode);
-        addMode.setText("Add");
+        addMode.setText("追加");
 
         modeBtnGrp.add(deleteMode);
-        deleteMode.setText("Delete");
+        deleteMode.setText("削除");
+
+        updateBtn.setText("更新");
+        updateBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateBtnActionPerformed(evt);
+            }
+        });
+
+        addRowBtn.setText("行追加");
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
-                .add(47, 47, 47)
+                .add(52, 52, 52)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(layout.createSequentialGroup()
+                        .add(updateBtn)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(addRowBtn)
+                        .add(0, 0, Short.MAX_VALUE))
                     .add(layout.createSequentialGroup()
                         .add(searchMode)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -92,7 +120,7 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
                         .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                            .add(scrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 505, Short.MAX_VALUE)
+                            .add(scrollPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 500, Short.MAX_VALUE)
                             .add(searchWord))
                         .add(46, 46, 46))))
         );
@@ -102,62 +130,104 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
                 .addContainerGap()
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(searchMode)
-                    .add(addMode, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 23, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(deleteMode))
+                    .add(deleteMode)
+                    .add(addMode, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 23, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(searchWord, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
                 .add(scrollPane, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 297, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(62, Short.MAX_VALUE))
+                .add(18, 18, 18)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(updateBtn)
+                    .add(addRowBtn))
+                .addContainerGap(15, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void searchWordKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_searchWordKeyPressed
-        
+
         // 入力されたキーを取得
         int keycode = evt.getKeyCode();
-        
+
         // Enterキーを入力した場合
-        if (keycode == KeyEvent.VK_ENTER ){
+        if (keycode == KeyEvent.VK_ENTER) {
+
+            // ファイルオブジェクト
+            File objFile = new File(POST_CODE_FILE);
 
             // ファイル読み込みを行うクラスのインスタンス生成
-            PostCodeFileReader postCodeFile = new PostCodeFileReader(POST_CODE_FILE, searchWord.getText());
-            
+            PostCodeFileSearcher postCodeFile = new PostCodeFileSearcher(POST_CODE_FILE, searchWord.getText());
+
             try {
-                // 該当データが存在しない場合
-                if (postCodeFile.getRowNum() == 0){
-                    
+
+                // ファイルが存在しない場合
+                if (objFile.exists() == false) {
                     // 警告メッセージを出力
-                    JOptionPane.showMessageDialog(this, "該当データが存在しません。", "Worn",JOptionPane.WARNING_MESSAGE);
-                
-                // 該当データが存在する場合
+                    JOptionPane.showMessageDialog(this, "ファイルが存在しません。", "Worn", JOptionPane.WARNING_MESSAGE);
+
+                    // ファイルが読み書きできない場合
+                } else if (objFile.canWrite() == false || objFile.canRead() == false) {
+
+                    // 警告メッセージを出力
+                    JOptionPane.showMessageDialog(this, "ファイルの読み書きができません。", "Worn", JOptionPane.WARNING_MESSAGE);
+
+                    // 該当データが存在しない場合
+                } else if (postCodeFile.getRowNum() == 0) {
+
+                    // 警告メッセージを出力
+                    JOptionPane.showMessageDialog(this, "該当データが存在しません。", "Worn", JOptionPane.WARNING_MESSAGE);
+
+                    // 該当データが存在する場合
                 } else {
-                    
+
                     // デフォルトテーブルを定義
-                    DefaultTableModel defTable = (DefaultTableModel)searchResult.getModel();
-                    
+                    DefaultTableModel defTable = (DefaultTableModel) searchResult.getModel();
+
                     // 行数を設定
                     defTable.setRowCount(postCodeFile.getRowNum());
-                    
+
                     // 読み込んだデータを取得する
                     List<String[]> postCodeData = postCodeFile.getFileData();
-                    
-                    for(int i = 0 ; i < postCodeData.size() ; i++)
-                        for(int j = 0 ; j < 3 ; j++){
+
+                    for (int i = 0; i < postCodeData.size(); i++) {
+                        for (int j = 0; j < postCodeData.get(i).length; j++) {
                             searchResult.setValueAt(postCodeData.get(i)[j], i, j);
+                        }
                     }
-                    
+
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-            
+
         }
-        
+
     }//GEN-LAST:event_searchWordKeyPressed
-    
+
+    private void updateBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateBtnActionPerformed
+        // TODO add your handling code here:
+
+        if (addMode.isSelected() == true) {
+            // デフォルトテーブルを定義
+            DefaultTableModel defTable = (DefaultTableModel) searchResult.getModel();
+            String[] columnFactor = new String[defTable.getColumnCount()];
+            PostCodeFileWriter fileWriter = new PostCodeFileWriter(POST_CODE_FILE);
+            
+            for (countRow = 0; countRow < defTable.getRowCount(); countRow++){
+                
+                for (countColumn = 0; countColumn < defTable.getColumnCount(); countColumn++){
+                    columnFactor[countColumn] = (String) defTable.getValueAt(countRow, countColumn);
+                }
+
+                fileWriter.saveData(columnFactor);
+                
+                System.err.println(fileWriter.format(columnFactor));
+            }
+        }
+    }//GEN-LAST:event_updateBtnActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -194,6 +264,7 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton addMode;
+    private javax.swing.JButton addRowBtn;
     private javax.swing.JRadioButton deleteMode;
     private javax.swing.JDesktopPane jDesktopPane1;
     private javax.swing.ButtonGroup modeBtnGrp;
@@ -201,34 +272,30 @@ public class SearchDisplay extends javax.swing.JFrame implements ActionListener{
     private javax.swing.JRadioButton searchMode;
     private javax.swing.JTable searchResult;
     private javax.swing.JTextField searchWord;
+    private javax.swing.JButton updateBtn;
     // End of variables declaration//GEN-END:variables
-        
+
     @Override
     public void actionPerformed(ActionEvent ae) {
-        
+
         // デフォルトテーブルを定義
-        DefaultTableModel defTable = (DefaultTableModel)searchResult.getModel();
-        
+        DefaultTableModel defTable = (DefaultTableModel) searchResult.getModel();
+
         searchWord.setText(null);
         defTable.setRowCount(0);
-        
+
         if (searchMode.isSelected() == true) {
             searchWord.setEnabled(true);
-            
-        } else if (addMode.isSelected() == true){
+
+        } else if (addMode.isSelected() == true) {
             searchWord.setEnabled(false);
-           
+
             // 行数を設定
             defTable.setRowCount(10);
-            
+
         } else if (deleteMode.isSelected() == true) {
             searchWord.setEnabled(true);
-            
+
         }
     }
-    
 }
-
-    
-
-   
