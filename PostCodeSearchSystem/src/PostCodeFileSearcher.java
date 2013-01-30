@@ -17,15 +17,13 @@ public class PostCodeFileSearcher {
     private String fileName;                    // ファイル名
     private File csvFile;                       // ファイル
     private List<String[]> fileData;            // ファイルデータ（格納先）
-    private String[] tempToSearch;              // 検索済データ
     private String searchWord;                  // 検索文字列
     private int rowNum;                         // ファイルの行数
     private int columnNum;                      // ファイルの列数（要素数）
     
     /**
      * コンストラクタ
-     * @param ファイル名
-     * @throws Exception
+     * 引数：ファイル名、検索文字列
      */
     public PostCodeFileSearcher(String fileName, String searchWord){
         this.fileName = fileName;
@@ -36,20 +34,25 @@ public class PostCodeFileSearcher {
     }
         
     /**
-     * csvデータを読み込むメソッド
-     * @throws Exception
+     * csvファイルから検索文字列と一致するデータを
+	 * 読み込む。
      */
     private void readFileData() throws Exception {
         
-        try {          
-            BufferedReader bReader = new BufferedReader( new FileReader( csvFile ) );
-
+    	String[] tempForSearch;              // 検索用データの一時格納場所
+    	
+        try {
+        	// バッファリーダーのインスタンス生成
+            BufferedReader bReader = new BufferedReader(new FileReader(csvFile));
+			
+        	// ファイルデータを格納するリストのインスタンスを生成
             fileData = new ArrayList<String[]>(); 
             
             // 最終行までファイルを読み込む
-            String fileLine = null;    
+            String fileLine = null;
             while ((fileLine = bReader.readLine()) != null) {
                 
+            	// 検索文字列に何も入っていない場合、csvファイル全件読み込む
                 if (searchWord.length() < 1){
                     
                     // 読み込んだ文字列をカンマで分割して、リストに格納
@@ -57,35 +60,45 @@ public class PostCodeFileSearcher {
                 
                     // 読み込んだ行数をカウント
                     rowNum ++;
-                    
+                
+                // 検索文字列が空欄でない場合
                 } else {
-                
-                    tempToSearch = fileLine.split(",");
-                
-                    for ( int i = 0 ; i < tempToSearch.length ; i++){
-                    
-                        if (tempToSearch[i].indexOf(searchWord) != -1){   
+                	
+                	// 読み込んだ文字列をカンマで分割し、検索用配列に格納
+                    tempForSearch = fileLine.split(",");
+                	
+                	// 検索用配列の中を指定文字列で検索（検索用配列の長さ分繰り返す）
+                    for (int cntCol = 0 ; cntCol < tempForSearch.length ; cntCol++){
+                    	
+                    	// 検索文字列が見つかった場合
+                        if (tempForSearch[cntCol].indexOf(searchWord) != -1){   
                         
                             // 読み込んだ文字列をカンマで分割して、リストに格納
                             fileData.add(fileLine.split(","));
                 
                             // 読み込んだ行数をカウント
                             rowNum ++;
-                    
+                    		
+                        	// 検索処理を抜ける
                             break;
                         }
                     }
                 }
             }
             
+        	// 読み込みファイルを閉じる
             bReader.close();
-            
+        
+        // 例外処理
+        // ファイルが見つからない場合
         } catch (FileNotFoundException e1) {
+        	// メッセージを出力
             System.out.println("ファイルが見つかりません。"); 
-            e1.printStackTrace();
+        
+        // 入出力エラーの場合
         } catch (IOException e1) {
-            System.out.println("入出力エラーです。"); 
-            e1.printStackTrace();
+            // メッセージを出力
+        	System.out.println("入出力エラーです。"); 
         } catch (ArrayIndexOutOfBoundsException e1) {
             e1.printStackTrace();
         } catch (Exception e1) {
@@ -95,20 +108,35 @@ public class PostCodeFileSearcher {
     }
     
     /**
-     * ファイルデータを取得する（引数なし）
+     * ファイルデータを取得する
      */
     public List<String[]> getFileData() throws Exception{
-        if(fileData == null){
-            this.readFileData();
+        
+    	// ファイルデータが存在しない場合
+    	if(fileData == null){
+    		
+    		// ファイルデータ読込処理            
+    		this.readFileData();
         }
+    	
+    	// ファイルデータのリストを返り値に設定
         return fileData;
         
     }
     
+	/**
+	* ファイルデータの行数を取得
+	*/
     public int getRowNum() throws Exception{
-        if(fileData == null){
+        
+    	// ファイルデータが存在しない場合
+    	if(fileData == null){
+    		
+    		// ファイルデータ読込処理
             this.readFileData();
         }
+    	
+    	// 行数を返り値に設定
         return this.rowNum;
     }
     
